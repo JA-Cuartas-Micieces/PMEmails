@@ -57,7 +57,7 @@ class TkWindow:
         self.frame_bottom=ttk.Frame()
         self.frame_bottom.pack()
         
-        msg=Message(self.frame_header,text="Por favor, meta en la carpeta Adjuntos, los que desee remitir, rellene el archivo .xlsx en la primera columna con emails de destinatarios separados por comas, segunda con el asunto y el resto con elementos a sustituir por orden, coincidentes con el número de parejas de corchetes ([]) en el archivo Email.htm que será remitido. Después rellene los campos del formulario y pulse enviar para remitir el email dinámico a los destinatarios del archivo .xlsx.",justify=LEFT)
+        msg=Message(self.frame_header,text="Por favor, meta en la carpeta Adjuntos, los que desee remitir en carpetas separadas en igual número y orden que los emails de cada fila del archivo .xlsx, rellene el archivo .xlsx en la primera columna con emails de destinatarios separados por comas, segunda con el asunto y el resto con elementos a sustituir por orden, coincidentes con el número de parejas de corchetes ([]) en el archivo Email.htm que será remitido. Después rellene los campos del formulario y pulse enviar para remitir el email dinámico a los destinatarios del archivo .xlsx.",justify=LEFT)
         msg.grid(row=0,column=0,padx=1,pady=1)
         
         entry1=StringVar()
@@ -220,11 +220,11 @@ class Execution:
         sb=strbase
         sr=""
         for i in range(nsubstitutions):
-#            print(i)
-#            print(lstrrep[i])
+            # print(i)
+            # print(lstrrep[i])
             s,sb,iab,sk=Execution.marker_replace(sb,lstrrep[i],a,b)
             if i in isubstitutions:
-                sr=sr+s[:iab]+lstrrep[i]
+                sr=sr+s[:iab]+str(lstrrep[i])
             else:
                 sr=sr+sk
         sr=sr+sb
@@ -247,42 +247,42 @@ class Execution:
         return inputdict
     
     def send_emails(self,*args,**kwargs):
-        try:
-            self.fromaddr=args[0]
-            self.passw=args[1]
-            self.nserver=args[2]
-            filename=self.cd+"\\Email\\Email.htm"
+        # try:
+        self.fromaddr=args[0]
+        self.passw=args[1]
+        self.nserver=args[2]
+        filename=self.cd+"\\Email\\Email.htm"
 
-            inputWorkbook=xlrd.open_workbook(self.cd+"\\Destinatarios.xlsx")
-            bk=inputWorkbook.sheet_by_index(0)
-            for v in range(1,bk.nrows):
-                with open(filename,"rb") as ht:
-                    html=ht.read()
+        inputWorkbook=xlrd.open_workbook(self.cd+"\\Destinatarios.xlsx")
+        bk=inputWorkbook.sheet_by_index(0)
+        for v in range(1,bk.nrows):
+            with open(filename,"rb") as ht:
+                html=ht.read()
 
-                soup = BeautifulSoup(html,features="lxml")
-                encoding = soup.original_encoding or 'utf-8'
+            soup = BeautifulSoup(html,features="lxml")
+            encoding = soup.original_encoding or 'utf-8'
 
-                with open(self.cd+"\\Emailm.txt","wb+") as fl:
-                    fl.write(soup.encode(encoding))
-                with open(self.cd+"\\Emailm.txt","r",encoding=encoding) as fr:
-                    self.s0=fr.read()
+            with open(self.cd+"\\Emailm.txt","wb+") as fl:
+                fl.write(soup.encode(encoding))
+            with open(self.cd+"\\Emailm.txt","r",encoding=encoding) as fr:
+                self.s0=fr.read()
 
-                os.remove(self.cd+"\\Emailm.txt")
+            os.remove(self.cd+"\\Emailm.txt")
+            
+            lemailsubstitutions=[]
+            for w in range(bk.ncols):
+                val=bk.cell(v, w).value
+                lemailsubstitutions.append(val)
+
+            if len(lemailsubstitutions)-2==len([el for el in Execution.extractall(self.s0,{"[]":[["[","]"]]})["[]"] if all([el=="","if" not in el])]):
+                msg = MIMEMultipart()
+                msg['From'] = self.fromaddr
+                msg['To'] = lemailsubstitutions[0]
+                msg['Subject'] = lemailsubstitutions[1]
                 
-                lemailsubstitutions=[]
-                for w in range(bk.ncols):
-                    val=bk.cell(v, w).value
-                    lemailsubstitutions.append(val)
-
-                if len(lemailsubstitutions)-2==len([el for el in Execution.extractall(self.s0,{"[]":[["[","]"]]})["[]"] if all([el=="","if" not in el])]):
-                    msg = MIMEMultipart()
-                    msg['From'] = self.fromaddr
-                    msg['To'] = lemailsubstitutions[0]
-                    msg['Subject'] = lemailsubstitutions[1]
-                    
-                    
-                    adjsf=sorted([el for el in os.listdir(self.cd+"\\Adjuntos")])
-                    adjsf.reverse()
+                adjsf=sorted([el for el in os.listdir(self.cd+"\\Adjuntos")])
+                adjsf.reverse()
+                if len(adjsf)>0:
                     adjs=[el for el in os.listdir(self.cd+"Adjuntos\\"+adjsf[v-1])]
                     for adjn in adjs:
                         adjpath = self.cd+"Adjuntos\\"+adjsf[v-1]+"\\"+adjn
@@ -293,70 +293,70 @@ class Execution:
                         adj_MIME.add_header('Content-Disposition', "attachment; filename= %s" % adjn)
                         msg.attach(adj_MIME)
 
-                    strbase=self.s0
-                    a="src=\""
-                    b="\""
-                    imgtags=Execution.extractall(strbase,{"img":[["<img","/>"]]})["img"]
-                    imgs=Execution.extractall(strbase,{"src":[[a,b]]})["src"]
-                    lsubs=[]
+                strbase=self.s0
+                a="src=\""
+                b="\""
+                imgtags=Execution.extractall(strbase,{"img":[["<img","/>"]]})["img"]
+                imgs=Execution.extractall(strbase,{"src":[[a,b]]})["src"]
+                lsubs=[]
+                
+                for n in range(len(imgs)):
                     
-                    for n in range(len(imgs)):
-                        
-                        nel=0
-                        for el in imgtags:
-                            if any([str(n+1)+".png" in el,str(n+1)+".jpg" in el,str(n+1)+".gif" in el]):
-                                nel=nel+1
-                                
-                                dirst=self.cd+'Email/'+imgs[n]
-                                with open(dirst.replace('/','\\'), 'rb') as fp:
-                                    msgImage = fp.read()
-                                    data_base64 = base64.b64encode(msgImage)
-                                    data_base64 = data_base64.decode()
-                                lsubs.append(data_base64)
-                                break
-                        if nel==0:
-                            lsubs.append(self.emptyflag)
+                    nel=0
+                    for el in imgtags:
+                        if any([str(n+1)+".png" in el,str(n+1)+".jpg" in el,str(n+1)+".gif" in el]):
+                            nel=nel+1
+                            
+                            dirst=self.cd+'Email/'+imgs[n]
+                            with open(dirst.replace('/','\\'), 'rb') as fp:
+                                msgImage = fp.read()
+                                data_base64 = base64.b64encode(msgImage)
+                                data_base64 = data_base64.decode()
+                            lsubs.append(data_base64)
+                            break
+                    if nel==0:
+                        lsubs.append(self.emptyflag)
 
-                    nsubstitutions=len(imgs)
-                    isubstitutions=[kids for kids,ids in enumerate(imgs) if lsubs[kids]!=self.emptyflag]
-                    lstrrep=[''.join(['"',"data:image/jpeg;base64,",str(el),'"']) if el!=self.emptyflag else self.emptyflag for el in lsubs]
+                nsubstitutions=len(imgs)
+                isubstitutions=[kids for kids,ids in enumerate(imgs) if lsubs[kids]!=self.emptyflag]
+                lstrrep=[''.join(['"',"data:image/jpeg;base64,",str(el),'"']) if el!=self.emptyflag else self.emptyflag for el in lsubs]
 
-                    string=Execution.nsubstitute(strbase,lstrrep,nsubstitutions,isubstitutions,a,b,encoding)
+                string=Execution.nsubstitute(strbase,lstrrep,nsubstitutions,isubstitutions,a,b,encoding)
 
-                    strbase=string
-                    a="["
-                    b="]"
-                    nsubstitutions=len(Execution.extractall(strbase,{"[]":[[a,b]]})["[]"])
-                    isubstitutions=[kids for kids,ids in enumerate(Execution.extractall(strbase,{"[]":[[a,b]]})["[]"]) if all([ids=="","if" not in ids])]
-                    lstrrep=[lemailsubstitutions[isubstitutions.index(num)+2]  if num in isubstitutions else self.emptyflag for num in range(nsubstitutions)]
+                strbase=string
+                a="["
+                b="]"
+                nsubstitutions=len(Execution.extractall(strbase,{"[]":[[a,b]]})["[]"])
+                isubstitutions=[kids for kids,ids in enumerate(Execution.extractall(strbase,{"[]":[[a,b]]})["[]"]) if all([ids=="","if" not in ids])]
+                lstrrep=[lemailsubstitutions[isubstitutions.index(num)+2]  if num in isubstitutions else self.emptyflag for num in range(nsubstitutions)]
 
-                    string2=Execution.marker_nsubstitute(strbase,lstrrep,nsubstitutions,isubstitutions,a,b)
+                # print(strbase)
+                # print(lstrrep)
+                # print(nsubstitutions)
+                # print(isubstitutions)
+                # print(a)
+                # print(b)
 
-                    msg.attach(MIMEText(string2, 'html'))
+                string2=Execution.marker_nsubstitute(strbase,lstrrep,nsubstitutions,isubstitutions,a,b)
 
-                    server = smtplib.SMTP(self.nserver,587)
-                    server.starttls()
-                    server.ehlo()
-                    try:
-                        server.login(self.fromaddr, self.passw)
-                    except:
-                        messagebox.showerror("Error", "Error en email o contraseña.")
-                    text= msg.as_string()
-                    server.sendmail(self.fromaddr, lemailsubstitutions[0].split(','), text)
-                    server.quit()
+                msg.attach(MIMEText(string2, 'html'))
 
-            dictv={"Email":args[0],"Password":"Rellenar","Server":args[2]}
-            with open(self.cd+"Config.json","w") as f:
-                json.dump(dictv,f)
-    #            shutil.rmtree(self.cd+"\\Email\\Email_archivos")
-    #            os.remove(self.cd+"\\Email\\Email.htm")
-    #            os.chdir(self.cd+"\\Enviados")
-    #            flst=[el for el in os.listdir() if el.endswith(".htm")]
-    #            os.chdir(self.cd)
-    #            shutil.move(self.cd+"\\Email\\Email.htm", self.cd+"\\Enviados\\Email"+str(len(flst)+1)+".htm")
-    #            shutil.copytree(self.cd+"\\Email_archivos", self.cd+"\\Enviados\\Email_archivos"+str(len(flst)+1)) 
-        except:
-            messagebox.showerror("Error", "Verifique que los nombres originales de todos los archivos y carpetas del programa no han sido cambiados. Guarde la próxima vez el archivo en formato .docx en el mismo directorio que el .htm (PMEmails\Email) para poder añadirle a la carpeta de Enviados. que el número de columnas del archivo .xlsx coincide con el número de parejas de corchetes [] en el archivo .html.")
+                server = smtplib.SMTP(self.nserver,587)
+                server.starttls()
+                server.ehlo()
+                try:
+                    server.login(self.fromaddr, self.passw)
+                except:
+                    messagebox.showerror("Error", "Error en email o contraseña.")
+                text= msg.as_string()
+                server.sendmail(self.fromaddr, lemailsubstitutions[0].split(','), text)
+                server.quit()
+
+        dictv={"Email":args[0],"Password":"Rellenar","Server":args[2]}
+        with open(self.cd+"Config.json","w") as f:
+            json.dump(dictv,f)
+        # except:
+        #     messagebox.showerror("Error", "Verifique que los nombres originales de todos los archivos y carpetas del programa no han sido cambiados. Guarde la próxima vez el archivo en formato .docx en el mismo directorio que el .htm (PMEmails\Email) para poder añadirle a la carpeta de Enviados. que el número de columnas del archivo .xlsx coincide con el número de parejas de corchetes [] en el archivo .html. Compruebe que hay igual número de carpetas en PMEmails\Adjuntos que filas en Destinatarios.xlsx")
       
 try:
     from bs4 import BeautifulSoup

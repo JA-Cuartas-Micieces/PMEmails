@@ -12,6 +12,9 @@ filas. Si denominásemos las carpetas como "Archivo" y un número, "Archivo1" co
 fila, "Archivo2" a la segunda... Cada carpeta dentro de "Adjuntos" contendrá los archivos adjuntos que
 serán enviados a cada conjunto de destinatarios de cada fila del archivo "Destinatarios.xlsx".
 
+Los datos de fechas y números en la hoja EXCEL de Destinatarios no se reflejan adecuadamente en el
+mensaje email.htm.
+
 El programa está pensado para Windows y se ejecuta desde "PMEmails.bat", aunque puede modificarse
 sencillamente para otros sistemas operativos.
 
