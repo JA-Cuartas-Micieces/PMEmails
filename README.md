@@ -1,36 +1,33 @@
 
 PROJECT
 
-Su objetivo es remitir a múltiples direcciones una plantilla "Email.htm", que puede ser editada por 
-ejemplo, fácilmente, a través de Microsoft Word. En ella hay corchetes ([]) que se sustituirán por los 
-elementos del archivo "Destinatarios.xlsx", del tercero en adelante (la primera y segunda columna 
-corresponden a los emails de los destinatarios en copia separados por comas y al asunto de cada email).
+The goal of this project is sending emails to several addresses according to a template "Email.htm".
+This template can be edited using Microsoft Word or any other text editor. The brackets positions 
+in the template will be replaced by "Destinatarios.xlsx" elements. The first column contains
+email recipients separated by semicolon and the second column contains the email subject for each 
+email.
 
-Se deben crear tantas carpetas en la carpeta "Adjuntos", como emails se deseen remitir, una por cada
-fila del archivo "Destinatarios.xlsx", que se identificarán en orden descendente por nombre con dichas
-filas. Si denominásemos las carpetas como "Archivo" y un número, "Archivo1" corresponderá a la primera 
-fila, "Archivo2" a la segunda... Cada carpeta dentro de "Adjuntos" contendrá los archivos adjuntos que
-serán enviados a cada conjunto de destinatarios de cada fila del archivo "Destinatarios.xlsx".
+You must create as many folders as emails you want to send inside the "Adjuntos" folders. There must 
+be at least one folder for each row of "Destinatarios.xlsx". Folders are sorted alphabetically in 
+descending order, for rows and attachments folders' to match.
 
-Los datos de fechas y números en la hoja EXCEL de Destinatarios no se reflejan adecuadamente en el
-mensaje email.htm.
+The batch file ("PMEmails.bat") is made to run the script on Windows, though it can be replaced by a
+basch script or other depending on the OS.
 
-El programa está pensado para Windows y se ejecuta desde "PMEmails.bat", aunque puede modificarse
-sencillamente para otros sistemas operativos.
+The script is made for Python 3.7 (Anaconda) and beautifulsoup4 and python-docx libraries must be 
+installed for the script to work. "PMEmails.bat" installs both packages if needed.
 
-Para que funcione el programa debe estar instalado Python 3.7 al menos, además del paquete beautifulsoup4 
-y python-docx (el archivo "PMEmails.bat" los instala antes de ejecutar el programa principal).
 
 MODULES
 
-El fichero batch ejecuta PMEmails.py que es el único módulo del programa y el archivo Config.json tan
-sólo sirve para guardar el servidor de correo y dirección email del último uso del programa.
+The batch file runs PMEmails.py the only script module. Config.json saves the email server and the
+email address from the last time the script is run.
 
 CONTACT AND CONTRIBUTION
 
-Este es un proyecto personal que no está abierto a contribuciones ahora mismo pero siéntete libre de compartir
-cualquier comentario, pregunta o sugerencia a través de javiercuartasmicieces@hotmail.com.
+This is a personal project and It is not open to contributions right now though I am open to it, 
+feel free to share any comment, question or suggestion through javiercuartasmicieces@hotmail.com.
 
 ACKNOWLEDGEMENTS
 
-Los scripts fueron desarrollados utilizando las librerías beautifulsoup4 y python-docx.
+The script was developed using beautifulsoup4 and python-docx libraries.
